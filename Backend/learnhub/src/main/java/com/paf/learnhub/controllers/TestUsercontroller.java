@@ -13,7 +13,7 @@ import java.util.List;
 //import java.util.UUID;  autogenaret id
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api/test")
 public class TestUsercontroller {
 
     @Autowired
