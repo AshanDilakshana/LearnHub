@@ -2,73 +2,65 @@ package com.paf.learnhub.controllers;
 
 import com.paf.learnhub.models.User;
 import com.paf.learnhub.Services.UserService;
+import com.paf.learnhub.utils.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.net.URI;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
     @Autowired
     private UserService userService;
-
-    @GetMapping("/user")
-    public ResponseEntity<?> getUser(@AuthenticationPrincipal OAuth2User principal) {
-        if (principal == null) {
-            return ResponseEntity.ok(new HashMap<>());
-        }
-        
-        String email = principal.getAttribute("email");
-        String name = principal.getAttribute("name");
-        String provider = principal.getAttribute("provider");
-        
-        User user = userService.findByEmail(email);
-        if (user == null) {
-            user = new User();
-            user.setEmail(email);
-            user.setName(name);
-            user.setProvider(provider);
-            user = userService.saveUser(user);
-        }
-        
-        Map<String, Object> userInfo = new HashMap<>();
-        userInfo.put("id", user.getId());
-        userInfo.put("name", user.getName());
-        userInfo.put("email", user.getEmail());
-        userInfo.put("provider", user.getProvider());
-        
-        return ResponseEntity.ok(userInfo);
-    }
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @GetMapping("/login/oauth2/code/{provider}")
-    public ResponseEntity<?> oauth2Callback(@PathVariable String provider, @AuthenticationPrincipal OAuth2User principal) {
-        if (principal == null) {
-            return ResponseEntity.badRequest().body("Authentication failed");
-        }
-        
-        String email = principal.getAttribute("email");
-        String name = principal.getAttribute("name");
-        
+    public ResponseEntity<Void> oauth2Login(OAuth2AuthenticationToken token) {
+        String provider = token.getAuthorizedClientRegistrationId(); // "google" or "github"
+        String email = token.getPrincipal().getAttribute("email");
+        String name = token.getPrincipal().getAttribute("name");
+
         User user = userService.findByEmail(email);
         if (user == null) {
             user = new User();
             user.setEmail(email);
             user.setName(name);
             user.setProvider(provider);
+            user.setProviderId(token.getPrincipal().getAttribute("sub"));
             user = userService.saveUser(user);
         }
-        
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", true);
-        response.put("redirectUrl", "http://localhost:5173/home");
-        
-        return ResponseEntity.ok(response);
+
+        String jwtToken = jwtUtil.generateToken(user.getId());
+        String redirectUrl = "http://localhost:3000/?token=" + jwtToken;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setLocation(URI.create(redirectUrl));
+        return new ResponseEntity<>(headers, HttpStatus.FOUND);
     }
 
-    // Add email/password login with JWT (implementation omitted for brevity)
+    @PostMapping("/login")
+    public ResponseEntity<String> login(@RequestBody User loginUser) {
+        User user = userService.findByEmail(loginUser.getEmail());
+        if (user != null && new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder().matches(loginUser.getPassword(), user.getPassword())) {
+            String token = jwtUtil.generateToken(user.getId());
+            return ResponseEntity.ok(token);
+        }
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid credentials");
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<String> register(@RequestBody User newUser) {
+        if (userService.findByEmail(newUser.getEmail()) != null) {
+            return ResponseEntity.status(HttpStatus.CONFLICT).body("Email already exists");
+        }
+        User savedUser = userService.saveUser(newUser);
+        String token = jwtUtil.generateToken(savedUser.getId());
+        return ResponseEntity.ok(token);
+    }
 }

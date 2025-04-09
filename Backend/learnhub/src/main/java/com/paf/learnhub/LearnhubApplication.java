@@ -15,6 +15,7 @@ public class LearnhubApplication {
         System.setProperty("MONGODB_URI", "mongodb+srv://ashandilakshana2002:ashan1234@cluster00.yv7ol.mongodb.net/LearnHub?retryWrites=true&w=majority");
         System.setProperty("DATABASE_NAME", "LearnHub");
         System.setProperty("SERVER_PORT", "8080");
+        System.setProperty("Front_URI", "http://localhost:5173");
 
         logger.info("Configuration values set in code: MONGODB_URI, DATABASE_NAME, SERVER_PORT");
 
