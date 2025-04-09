@@ -26,7 +26,7 @@ public class TestUsercontroller {
             /*if (user.getId() == null) {
                 user.setId(UUID.randomUUID().toString()); // Generate ID if not provided
             }*/
-            TestUser createdUser = mongoTemplate.save(user, "users"); // Save to "test_users" collection
+            TestUser createdUser = mongoTemplate.save(user, "test"); // Save to "test_users" collection
             return new ResponseEntity<>(createdUser, HttpStatus.CREATED); // 201 Created
         } catch (Exception e) {
             return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR); // 500 Internal Server Error
@@ -37,7 +37,7 @@ public class TestUsercontroller {
     @GetMapping("/{id}")
     public ResponseEntity<TestUser> getUserById(@PathVariable String id) {
         Query query = new Query(Criteria.where("id").is(id));
-        TestUser user = mongoTemplate.findOne(query, TestUser.class, "users");
+        TestUser user = mongoTemplate.findOne(query, TestUser.class, "test");
         if (user != null) {
             return new ResponseEntity<>(user, HttpStatus.OK); // 200 OK
         } else {
@@ -49,7 +49,7 @@ public class TestUsercontroller {
     @GetMapping
     public ResponseEntity<List<TestUser>> getAllUsers() {
         try {
-            List<TestUser> users = mongoTemplate.findAll(TestUser.class, "users");
+            List<TestUser> users = mongoTemplate.findAll(TestUser.class, "test");
             if (users.isEmpty()) {
                 return new ResponseEntity<>(HttpStatus.NO_CONTENT); // 204 No Content
             }
@@ -63,11 +63,11 @@ public class TestUsercontroller {
     @PutMapping("/{id}")
     public ResponseEntity<TestUser> updateUser(@PathVariable String id, @RequestBody TestUser user) {
         Query query = new Query(Criteria.where("id").is(id));
-        TestUser existingUser = mongoTemplate.findOne(query, TestUser.class, "users");
+        TestUser existingUser = mongoTemplate.findOne(query, TestUser.class, "test");
         if (existingUser != null) {
             existingUser.setName(user.getName());
             existingUser.setEmail(user.getEmail());
-            TestUser updatedUser = mongoTemplate.save(existingUser, "users");
+            TestUser updatedUser = mongoTemplate.save(existingUser, "test");
             return new ResponseEntity<>(updatedUser, HttpStatus.OK); // 200 OK
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND); // 404 Not Found
@@ -78,9 +78,9 @@ public class TestUsercontroller {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable String id) {
         Query query = new Query(Criteria.where("id").is(id));
-        TestUser user = mongoTemplate.findOne(query, TestUser.class, "users");
+        TestUser user = mongoTemplate.findOne(query, TestUser.class, "test");
         if (user != null) {
-            mongoTemplate.remove(user, "users");
+            mongoTemplate.remove(user, "test");
             return new ResponseEntity<>(HttpStatus.NO_CONTENT); // 204 No Content
         } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND); // 404 Not Found

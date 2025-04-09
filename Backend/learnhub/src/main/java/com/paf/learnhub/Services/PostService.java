@@ -1,7 +1,5 @@
 package com.paf.learnhub.Services;
 
-
-
 import com.paf.learnhub.models.Post;
 import com.paf.learnhub.repositories.PostRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,8 +13,10 @@ public class PostService {
     @Autowired
     private PostRepository postRepository;
 
-    public Post createPost(Post post) {
+    public Post createPost(Post post, String photoUrl, String videoUrl) {
         post.setCreatedAt(LocalDateTime.now());
+        post.setPhotoUrl(photoUrl);
+        post.setVideoUrl(videoUrl);
         return postRepository.save(post);
     }
 
