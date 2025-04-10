@@ -1,0 +1,21 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "LearnHubApplication",
+            "request": "launch",
+            "mainClass": "com.paf.learnhub.LearnHubApplication",
+            "projectName": "learnhub"
+        },
+        {
+            "type": "java",
+            "name": "Spring Boot-LearnhubApplication<learnhub>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.paf.learnhub.LearnhubApplication",
+            "projectName": "learnhub",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
